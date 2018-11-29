@@ -8,7 +8,7 @@ superblock = []
 freeblocks = []
 freeinodes = []
 dirents = []
-indirents = []
+indirects = []
 inodes = []
 
 haserror = False
@@ -18,7 +18,10 @@ def dump_error(msg):
 	exit(1)
 
 def check_block():
-    print("check block")
+  global indirects, haserror
+	#for inode in inodes:
+	#for indirect in indirects:
+
 def check_inode():
 	
 	global freeinodes, inodes, haserror
@@ -72,21 +75,21 @@ if __name__ == "__main__":
         reader = csv.reader(csvfile)
         for row in reader:
             if len(row) <= 0:
-				dump_error("Error: file contains blank line\n")
-			if row[0] == 'SUPERBLOCK':
-				superblock = row
-			elif row[0] == 'BFREE':
-				freeblocks.append(int(row[1]))
-			elif row[0] == 'IFREE':
-				freeinodes.append(int(row[1]))
-			elif row[0] == 'DIRENT':
-				dirents.append(row)
-			elif row[0] == 'INODE':
-				inodes.append(row)
-			elif row[0] == 'INDIRECT':
-				indirects.append(row)
-			elif row[0] != 'GROUP':
-				dump_error("Invalid line in CSV\n")
+							dump_error("Error: file contains blank line\n")
+						elif row[0] == 'SUPERBLOCK':
+							superblock = row
+						elif row[0] == 'BFREE':
+							freeblocks.append(int(row[1]))
+						elif row[0] == 'IFREE':
+							freeinodes.append(int(row[1]))
+						elif row[0] == 'DIRENT':
+							dirents.append(row)
+						elif row[0] == 'INODE':
+							inodes.append(row)
+						elif row[0] == 'INDIRECT':
+							indirects.append(row)
+						elif row[0] != 'GROUP':
+							dump_error("Invalid line in CSV\n")
     check_block()
     check_inode()
     check_directory()
