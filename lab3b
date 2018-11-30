@@ -30,7 +30,7 @@ def scan_block(i_block, inode_no, offset, block_type):
 		haserror = True
 	elif i_block not in block_references:
 		block_references[i_block] = ["DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)]
-	elif block_references[i_block].count("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)) == 0:
+	elif "DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset) not in block_references[i_block]:
 		block_references[i_block].append("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset))
 
 def check_block():
@@ -107,6 +107,7 @@ def check_directory():
   print("check directory")
 
 if __name__ == "__main__":
+	global haserror, block_references, superblock, freeblocks, freeinodes, dirents, indirects, inodes
 	if len(sys.argv) != 2:
 		dump_error("Only 1 argument")
 	if not os.path.isfile(sys.argv[1]):
@@ -134,7 +135,8 @@ if __name__ == "__main__":
 				dump_error("Invalid line in CSV\n")
 	check_block()
 	check_inode()
-	check_directory()
+	#check_directory()
+	print(inodes)
 	if haserror:
 		exit(2)
 	else:

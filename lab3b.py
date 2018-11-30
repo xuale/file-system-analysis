@@ -30,12 +30,13 @@ def scan_block(i_block, inode_no, offset, block_type):
 		haserror = True
 	elif i_block not in block_references:
 		block_references[i_block] = ["DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)]
-	elif block_references[i_block].count("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)) == 0:
+	elif "DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset) not in block_references[i_block]:
 		block_references[i_block].append("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset))
 
 def check_block():
 	global haserror, inodes, block_references, indirects, freeblocks
 	for inode in inodes:
+		count = 0
 		for i in range(12, 27):
 			if i == 24:
 				scan_block(int(inode[i]), inode[1], 12, "INDIRECT ")
@@ -44,7 +45,8 @@ def check_block():
 			elif i == 26:
 				scan_block(int(inode[i]), inode[1], 65804, "TRIPLE INDIRECT ")
 			else:
-				scan_block(int(inode[i]), inode[1], i, "")
+				scan_block(int(inode[i]), inode[1], count, "")
+			count = count + 1
 	for indirect in indirects:
 		indirect_level = ""
 		if indirect[2] == "1":
@@ -53,7 +55,7 @@ def check_block():
 			indirect_level = "DOUBLE INDIRECT "
 		elif indirect[2] == "3":
 			indirect_level = "TRIPLE INDIRECT "
-		scan_block(int(indirect[4]), indirect[1], int(indirect[3]), indirect_level)
+		scan_block(int(indirect[5]), indirect[1], int(indirect[3]), indirect_level)
 	for iblock in range(8, int(superblock[1])):
 		if iblock in freeblocks and iblock in block_references:
 			print("ALLOCATED BLOCK {} ON FREELIST".format(iblock))
@@ -134,7 +136,8 @@ if __name__ == "__main__":
 				dump_error("Invalid line in CSV\n")
 	check_block()
 	check_inode()
-	check_directory()
+	#check_directory()
+	print(inodes)
 	if haserror:
 		exit(2)
 	else:
