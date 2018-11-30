@@ -67,6 +67,7 @@ def check_block():
 			for msg in block_references[iblock]:
 				print(msg)
 				haserror = True
+
 def check_inode():
 	global freeinodes, inodes, haserror
 	unallocated = freeinodes
@@ -106,7 +107,53 @@ def check_inode():
 	freeinodes = unallocated
 
 def check_directory():
-  print("check directory")
+	global haserror
+	inodecnt = int(superblock[2])
+	inodedict = {}
+	parentdict = {2: 2}
+
+	for dirent in dirents:
+		entrynum = int(dirent[3])
+		entryname = dirent[6].rstrip()
+		parentnum = int(dirent[1])
+		if entrynum > inodecnt:
+			print("DIRECTORY INODE {} NAME {} INVALID INODE {}".format(parentnum, entryname, entrynum))
+			haserror = True
+		elif entrynum in freeinodes:
+			print("DIRECTORY INODE {} NAME {} UNALLOCATED INODE {}".format(parentnum, entryname, entrynum))
+			haserror = True
+		else:
+			if entrynum in inodedict:
+				inodedict[entrynum] = inodedict[entrynum] + 1
+			else:
+				inodedict[entrynum] = 0
+			if entryname != "'..'" and entryname != "'.'":
+				parentdict[entrynum] = parentnum
+
+	for inode in inodes:
+		inodenum = int(inode[1])
+		linkcount = int(inode[6])
+		if inodenum not in inodedict:
+			if linkcount > 0:
+				print("INODE {} HAS 0 LINKS BUT LINKCOUNT IS {}".format(inodenum, linkcount))
+				haserror = True
+		else:
+			currcount = inodedict[inodenum]
+			if linkcount != currcount:
+				print("INODE {} HAS {} LINKS BUT LINKCOUNT IS {}".format(inodenum, currcount, linkcount))
+				haserror = True
+		
+	for dirent in dirents:
+		entrynum = int(dirent[3])
+		entryname = dirent[6].rstrip()
+		parentnum = int(dirent[1]) 
+		compareto = parentnum
+		if entryname == "'..'":
+			compareto = parentdict[parentnum]
+			
+		if entryname == "'..'" or entryname == "'.'" and entrynum != compareto:
+			print ("DIRECTORY INODE {} NAME {} LINK TO INODE {} SHOULD BE {}".format(parentnum, entryname, entrynum, compareto))
+			haserror = True
 
 if __name__ == "__main__":
 	if len(sys.argv) != 2:
