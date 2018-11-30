@@ -183,8 +183,7 @@ if __name__ == "__main__":
 				dump_error("Invalid line in CSV\n")
 	check_block()
 	check_inode()
-	#check_directory()
-	print(inodes)
+	check_directory()
 	if haserror:
 		exit(2)
 	else:
