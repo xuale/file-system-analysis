@@ -29,12 +29,12 @@ def scan_block(i_block, inode_no, offset, block_type):
 		print("RESERVED {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset))
 		haserror = True
 	elif i_block not in block_references:
-		block_references[i_block] = ["DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)]
-	elif block_references[i_block].count("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)) == 0:
-		block_references[i_block].append("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset))
+		block_references[block] = ["DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset)]
+	else:
+		block_references[block].append("DUPLICATE {}BLOCK {} IN INODE {} AT OFFSET {}".format(block_type, i_block, inode_no, offset))
 
 def check_block():
-	global haserror, inodes, block_references, indirects, freeblocks
+	global haserror, inodes, block_references, indirects
 	for inode in inodes:
 		for i in range(12, 27):
 			if i == 24:
@@ -55,13 +55,13 @@ def check_block():
 			indirect_level = "TRIPLE INDIRECT "
 		scan_block(int(indirect[4]), indirect[1], int(indirect[3]), indirect_level)
 	for iblock in range(8, int(superblock[1])):
-		if iblock in freeblocks and iblock in block_references:
+		if iblock in free_blocks and iblock in block_references:
 			print("ALLOCATED BLOCK {} ON FREELIST".format(iblock))
 			haserror = True
-		if iblock not in freeblocks and iblock not in block_references:
+		if iblock not in free_blocks and iblock not in block_references:
 			print("UNREFERENCED BLOCK {}".format(iblock))
 			haserror = True
-		if iblock in block_references and len(block_references[iblock]) > 1:
+		if iblock in block_references and len(block_references[iblock]) != 1:
 			for msg in block_references[iblock]:
 				print(msg)
 				haserror = True
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 	if len(sys.argv) != 2:
 		dump_error("Only 1 argument")
 	if not os.path.isfile(sys.argv[1]):
-		dump_error("File does not exist")
+		print_error("File does not exist")
 	
 	# getting data into global vars
 	with open(sys.argv[1], 'r') as csvfile:
